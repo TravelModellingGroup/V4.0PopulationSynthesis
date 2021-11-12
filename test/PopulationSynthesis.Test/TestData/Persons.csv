@@ -1,0 +1,5 @@
+HouseholdID,PersonNumber,Age,Sex,License,TransitPass,EmploymentStatus,Occupation,FreeParking,StudentStatus,EmploymentZone,SchoolZone,ExpansionFactor
+1,1,38,M,Y,M,F,G,N,O,8,0,1
+1,1,37,F,Y,M,P,M,N,O,9,1,1
+2,1,22,F,Y,N,F,P,N,O,8888,0,1
+3,1,66,F,Y,N,O,O,N,O,0,0,1
