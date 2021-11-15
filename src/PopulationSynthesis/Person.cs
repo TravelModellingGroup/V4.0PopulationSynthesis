@@ -71,7 +71,7 @@ public readonly record struct Person(int Age, string Sex, string License, string
     }
 
     /// <summary>
-    /// Get the household list from the ID of the household or creates a new one and appends it to the 
+    /// Get the household list from the ID of the household or creates a new one and appends it to the dictionary.
     /// </summary>
     /// <param name="personsInHousehold">A dictionary where the key is the household id and value of a list of persons living within it.</param>
     /// <param name="householdId">The household ID number</param>
@@ -88,7 +88,7 @@ public readonly record struct Person(int Age, string Sex, string License, string
     /// <summary>
     /// Loads in a person record and appends it to the list of persons within the household.
     /// </summary>
-    /// <param name="persons"></param>
+    /// <param name="persons">The list of persons in the household.</param>
     /// <param name="record"></param>
     /// <param name="error"></param>
     private static bool AddPersonRecordToPersonsList(List<Person> persons, string[] record, ref string? error)
