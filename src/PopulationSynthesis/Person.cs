@@ -34,7 +34,7 @@ using static Utilities;
 /// <param name="EmploymentStatus">The employment status for the person. F, P, H, J, and
 /// O are Full-Time, Part-Time, Full-Time-Work-At-Home, Part-Time-Work-At-Home, and unemployed respectively.</param>
 /// <param name="Occupation">The occupation status for the person.  P, G, S, M, and
-/// O are Professional, General Office / Clerical, Sales/Retail, and Manufacturing / Construction respectively.</param>
+/// O are Professional, General Office / Clerical, Sales/Retail, Manufacturing / Construction, and Unemployed respectively.</param>
 /// <param name="FreeParking">Does the person have free parking at work.  "Y" for yes or "N" for no.</param>
 /// <param name="StudentStatus">"F" for Full-Time, "P" for Part-Time, or "O" for not a student.</param>
 /// <param name="EmploymentPD">The planning district number that this person is employed in, 0 if they are not employed, or 8888 if they have no fixed place of work.</param>
