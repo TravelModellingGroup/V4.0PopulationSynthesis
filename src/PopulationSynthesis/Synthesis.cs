@@ -16,14 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with V4.0PopulationSynthesis.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using static PopulationSynthesis.Utilities;
 namespace PopulationSynthesis;
 
 /// <summary>
@@ -64,10 +57,71 @@ public static class Synthesis
     {
         using var householdWriter = new StreamWriter(Path.Combine(outputDirectory, "Households.csv"));
         using var personWriter = new StreamWriter(Path.Combine(outputDirectory, "Persons.csv"));
+        int householdId = 1;
         WriteHeaders(householdWriter, personWriter);
-        foreach ((int householdId, int taz) in synthesisResults)
+        foreach ((int householdIndex, int taz) in synthesisResults)
         {
+            var household = households[householdIndex];
+            WriteHousehold(householdWriter, household, householdId, taz);
+            WritePersons(personWriter, householdId, persons[householdIndex]);
+            householdId++;
+        }
+    }
 
+    /// <summary>
+    /// Emit the household record.
+    /// </summary>
+    /// <param name="writer">The stream to write to.</param>
+    /// <param name="household">The household object to clone.</param>
+    /// <param name="householdId">The household id for this record.</param>
+    /// <param name="taz">The TAZ that the household lives in.</param>
+    private static void WriteHousehold(StreamWriter writer, Household household, int householdId, int taz)
+    {
+        writer.Write(householdId);
+        writer.Write(',');
+        writer.Write(taz);
+        writer.Write(',');
+        writer.Write(household.ExpansionFactor);
+        writer.Write(',');
+        writer.Write(household.DwellingType);
+        writer.Write(',');
+        writer.Write(household.NumberOfPersons);
+        writer.Write(',');
+        writer.Write(household.NumberOfVehicles);
+        writer.Write(',');
+        writer.WriteLine(household.Income);
+    }
+
+    /// <summary>
+    /// Emit the person records for the household.
+    /// </summary>
+    /// <param name="writer">The stream to write to.</param>
+    /// <param name="householdId">The household id for this household.</param>
+    /// <param name="people">The people living in this household.</param>
+    private static void WritePersons(StreamWriter writer, int householdId, List<Person> people)
+    {
+        for (int i = 0; i < people.Count; i++)
+        {
+            var person = people[i];
+            writer.Write(householdId);
+            writer.Write(',');
+            writer.Write(i + 1);
+            writer.Write(',');
+            writer.Write(person.Age);
+            writer.Write(',');
+            writer.Write(person.Sex);
+            writer.Write(',');
+            writer.Write(person.License);
+            writer.Write(',');
+            writer.Write(person.TransitPass);
+            writer.Write(',');
+            writer.Write(person.EmploymentStatus);
+            writer.Write(',');
+            writer.Write(person.EmploymentPD);
+            writer.Write(',');
+            writer.Write(person.SchoolPD);
+            writer.Write(',');
+            writer.WriteLine(person.ExpansionFactor);
         }
     }
 

@@ -16,11 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with V4.0PopulationSynthesis.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace PopulationSynthesis;
 
 /// <summary>
@@ -113,7 +108,7 @@ public sealed class LandUse
     /// <summary>
     /// Check to see if there is any zone with population defined that is not contained in the zone system.
     /// </summary>
-    /// <exception cref="Exception">Thrown when there is a TAZ with population defined but iz not included in the zone system.</exception>
+    /// <exception cref="Exception">Thrown when there is a TAZ with population defined but is not included in the zone system.</exception>
     private void EnsurePopulationZonesExists()
     {
         // Check for a zone with population that does not exist in the zone to pd map

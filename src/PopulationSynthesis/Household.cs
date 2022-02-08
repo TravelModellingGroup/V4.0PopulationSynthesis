@@ -16,10 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with V4.0PopulationSynthesis.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-
 namespace PopulationSynthesis;
 
 /// <summary>
