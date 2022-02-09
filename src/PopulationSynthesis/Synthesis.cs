@@ -39,7 +39,7 @@ public static class Synthesis
         var pdSeed = pds.Select(pd => (PD: pd, Seed: random.Next(0, int.MaxValue))).ToDictionary(v => v.PD, v => v.Seed);
         Record(pds.AsParallel()
                   .AsOrdered()
-                  .SelectMany(pd => GeneratePopulation(landUse, households, persons, pd, pdSeed[pd])),
+                  .SelectMany(pd => GeneratePopulation(landUse, households, pd, pdSeed[pd])),
                   configuration.OutputDirectory,
                   households,
                   persons);
@@ -59,11 +59,14 @@ public static class Synthesis
         using var personWriter = new StreamWriter(Path.Combine(outputDirectory, "Persons.csv"));
         int householdId = 1;
         WriteHeaders(householdWriter, personWriter);
+        var workers = new WorkerCategoryBuilder();
         foreach ((int householdIndex, int taz) in synthesisResults)
         {
             var household = households[householdIndex];
+            var householdMembers = persons[householdIndex];
             WriteHousehold(householdWriter, household, householdId, taz);
-            WritePersons(personWriter, householdId, persons[householdIndex]);
+            WritePersons(personWriter, householdId, householdMembers);
+            workers.Record(household, householdMembers, taz);
             householdId++;
         }
     }
@@ -141,12 +144,131 @@ public static class Synthesis
     /// </summary>
     /// <param name="landUse">Land-use information.</param>
     /// <param name="households">Household records indexed by householdId.</param>
-    /// <param name="persons">Lists of persons living in households indexed by householdId.</param>
     /// <returns>Returns the selections for households by each planning district.</returns>
     private static IEnumerable<(int householdId, int taz)> GeneratePopulation(LandUse landUse, Dictionary<int, Household> households,
-        Dictionary<int, List<Person>> persons, int pd, int randomSeed)
+        int pd, int randomSeed)
     {
-        throw new NotImplementedException();
+        var pool = CreatePoolForPD(households, pd);
+        var expFactors = new float[pool.Length];
+        var zones = landUse.GetZonesInPlanningDistrict(pd);
+        var remaining = zones.Select(zone => (int)Math.Round(landUse.GetPopulation(zone))).ToArray();
+        var random = CreateRandomNumberGenerators(pd, randomSeed, zones.Count);
+        var totalExpansionFactor = CopyExpansionFactors(expFactors, pool);
+        const int numberOfAttempts = 3;
+        // Keep drawing people until no zones required any new households
+        var any = false;
+        while (any)
+        {
+            any = false;
+            for (int i = 0; i < zones.Count; i++)
+            {
+                if (remaining[i] > 0)
+                {
+                    any = true;
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        int index = Pick(expFactors, random[i], pool, ref totalExpansionFactor, ref remaining[i]);
+                        // If we can't find a household in the pool then reset the expansion factors.
+                        if (index < 0)
+                        {
+                            if (attempt < numberOfAttempts)
+                            {
+                                totalExpansionFactor = CopyExpansionFactors(expFactors, pool);
+                            }
+                            else
+                            {
+                                throw new SynthesisException($"Unable to select a household for zone {zones[i]}!");
+                            }
+                            continue;
+                        }
+                        yield return (pool[index].Key, zones[i]);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pick a household with no more than the remaining size from the pool.
+    /// </summary>
+    /// <param name="expFactors"></param>
+    /// <param name="random"></param>
+    /// <param name="remaining"></param>
+    /// <returns></returns>
+    private static int Pick(float[] expFactors, Random random,
+        KeyValuePair<int, Household>[] pool, ref float totalExpansionFactor, ref int remaining)
+    {
+        double acc = 0.0f;
+        const float minExp = 0.01f;
+        var pop = random.NextDouble() * totalExpansionFactor;
+        for (int i = 0; i < expFactors.Length; i++)
+        {
+            acc += expFactors[i];
+            if ((acc > pop) & expFactors[i] > 0)
+            {
+                var householdSize = pool[i].Value.NumberOfPersons;
+                if (householdSize <= remaining)
+                {
+                    remaining -= householdSize;
+                    var original = expFactors[i];
+                    expFactors[i] = expFactors[i] - 1.0f;
+                    if (expFactors[i] < minExp)
+                    {
+                        expFactors[i] = 0.0f;
+                    }
+                    totalExpansionFactor -= original - expFactors[i];
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Initialize a random number generator per zone.
+    /// </summary>
+    /// <param name="pd">The planning district this is for.</param>
+    /// <param name="randomSeed">The initial random seed.</param>
+    /// <param name="size">The number of zones to generate a random generator for.</param>
+    /// <returns>A random number generator for each zone.</returns>
+    private static Random[] CreateRandomNumberGenerators(int pd, int randomSeed, int size)
+    {
+        var random = new Random(randomSeed * pd);
+        var ret = new Random[size];
+        for (int i = 0; i < ret.Length; i++)
+        {
+            ret[i] = new Random(random.Next());
+        }
+        return ret;
+    }
+
+    /// <summary>
+    /// Copy the expansion factors from the pool into the expansionFactor vector.
+    /// </summary>
+    /// <param name="expFactors">The expFactor array to set.</param>
+    /// <param name="pool">The pool to copy the expansion factors from.</param>
+    private static float CopyExpansionFactors(float[] expFactors, KeyValuePair<int, Household>[] pool)
+    {
+        double acc = 0.0;
+        for (int i = 0; i < pool.Length; i++)
+        {
+            acc += expFactors[i] = pool[i].Value.ExpansionFactor;
+        }
+        return (float)acc;
+    }
+
+    /// <summary>
+    /// Creates a pool for a planning district of seed households to draw from given the full set of households
+    /// </summary>
+    /// <param name="households">The complete pool of all households</param>
+    /// <param name="pd">The planning district to select for.</param>
+    /// <returns>An array of households and id numbers that reside in the planning district.</returns>
+    private static KeyValuePair<int, Household>[] CreatePoolForPD(Dictionary<int, Household> households, int pd)
+    {
+        return households
+            .Where(entry => entry.Value.HouseholdPD == pd)
+            .ToArray();
     }
 
     /// <summary>

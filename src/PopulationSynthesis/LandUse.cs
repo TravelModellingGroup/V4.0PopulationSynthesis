@@ -163,5 +163,10 @@ public sealed class LandUse
             throw new Exception($"The zone number {zoneNumber} does not exist in the zone system!");
         }
     }
+
+    /// <summary>
+    /// Gets the number of zones that we have data for.
+    /// </summary>
+    public int Count => _zoneToPD.Count;
 }
 

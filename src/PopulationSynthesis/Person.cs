@@ -101,4 +101,13 @@ public readonly record struct Person(int Age, string Sex, string License, string
         persons.Add(new Person(age, sex, license, transitPass, employmentStatus, occupation, freeParking, studentStatus, employmentPD, schoolPD, expansionFactor));
         return true;
     }
+
+    /// <summary>
+    /// Checks to see if the person has a license
+    /// </summary>
+    /// <returns>True if they do, false otherwise.</returns>
+    internal bool HasLicense()
+    {
+        return char.ToLowerInvariant(License[0]) == 'y';
+    }
 }
