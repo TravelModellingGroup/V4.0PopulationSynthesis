@@ -83,8 +83,8 @@ public readonly record struct Person(int Age, string Sex, string License, string
     /// Loads in a person record and appends it to the list of persons within the household.
     /// </summary>
     /// <param name="persons">The list of persons in the household.</param>
-    /// <param name="record"></param>
-    /// <param name="error"></param>
+    /// <param name="record">The record broken down into columns.</param>
+    /// <param name="error">The error message if this operation returns false.</param>
     private static bool AddPersonRecordToPersonsList(List<Person> persons, string[] record, ref string? error)
     {
         if (!ParseInt(record[2], out var age, "Age", ref error)) return false;
