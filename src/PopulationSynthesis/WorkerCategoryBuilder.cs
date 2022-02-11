@@ -211,7 +211,7 @@ internal sealed class WorkerCategoryBuilder
     {
         Parallel.For(0, _numberOfOccEmp, (int occEmpIndex) =>
         {
-            using var writer = new StreamWriter(Path.Combine(directory.FullName, _occEmpFileName[occEmpIndex]));
+            using var writer = CreateStreamWriter(Path.Combine(directory.FullName, _occEmpFileName[occEmpIndex]));
             WriteWorkerCategory(writer, occEmpIndex);
         });
     }
@@ -265,17 +265,5 @@ internal sealed class WorkerCategoryBuilder
         invTotal = 1 / invTotal;
         // If we have an invalid total (no entries) then the answers should all be zero
         return !float.IsInfinity(invTotal) ? invTotal : 0.0f;
-    }
-
-    /// <summary>
-    /// Create the given sub-directory, if it does not already exist, and return a reference to it.
-    /// </summary>
-    /// <param name="baseDirectory">The path of base directory.</param>
-    /// <param name="subDirectory">The name of the sub-directory.</param>
-    /// <returns>A reference to the sub-directory.</returns>
-    private static DirectoryInfo CreateDirectory(string baseDirectory, string subDirectory)
-    {
-        var dir = Path.Combine(baseDirectory, subDirectory);
-        return Directory.CreateDirectory(dir);
     }
 }

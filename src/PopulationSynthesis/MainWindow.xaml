@@ -1,11 +1,9 @@
 ﻿<Window x:Class="PopulationSynthesis.MainWindow"
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:PopulationSynthesis"
-        Title="V4.0 Population Synthesis"  SizeToContent="WidthAndHeight"
+        Title="V4.0 Population Synthesis"  SizeToContent="Height" Width="400"
         ResizeMode="CanResizeWithGrip">
-        
     <Grid Background="{DynamicResource MahApps.Brushes.Control.Background}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="AUTO" />
@@ -19,11 +17,12 @@
             <RowDefinition Height="AUTO" />
             <RowDefinition Height="AUTO" />
             <RowDefinition Height="AUTO" />
+            <RowDefinition Height="AUTO" />
         </Grid.RowDefinitions>
 
         <!-- InputPopulationDirectory  -->
         <Label Grid.Row="0" Grid.Column="0">Input Seed Population Directory</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding InputSeedPopulationDirectory}" MinWidth="200" />
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding InputPopulationDirectory}" MinWidth="200" />
         <Button Grid.Row="0" Grid.Column="2" MinWidth="25"
                 ToolTip="Select Directory"
                 Click="InputSeedDirectory_Click">...</Button>
@@ -52,5 +51,6 @@
         <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
                 ToolTip="Run the simulation"
                 Click="Run_Click">Run</Button>
+        <ProgressBar Grid.Row="6" Grid.ColumnSpan="3" IsIndeterminate="{Binding ModelRunning}" />
     </Grid>
 </Window>

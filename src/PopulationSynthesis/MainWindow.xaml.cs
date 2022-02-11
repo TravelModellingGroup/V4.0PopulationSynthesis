@@ -18,6 +18,7 @@
 */
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Media;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,6 +31,9 @@ namespace PopulationSynthesis;
 /// </summary>
 public partial class MainWindow : Window
 {
+    /// <summary>
+    /// Provides the view model for creating our configuration.
+    /// </summary>
     public class ConfigurationModel : INotifyPropertyChanged
     {
         string _populationForecastFile = String.Empty;
@@ -37,6 +41,7 @@ public partial class MainWindow : Window
         string _inputPopulationDirectory = String.Empty;
         string _outputDirectory = String.Empty;
         int _randomSeed = 12345;
+        bool _modelRunning = false;
 
         public string PopulationForecastFile
         {
@@ -88,6 +93,16 @@ public partial class MainWindow : Window
                     _randomSeed = randomSeed;
                     InvokePropertyChanged();
                 }
+            }
+        }
+
+        public bool ModelRunning
+        {
+            get => _modelRunning;
+            set
+            {
+                _modelRunning = value;
+               InvokePropertyChanged(); 
             }
         }
 
@@ -146,7 +161,7 @@ public partial class MainWindow : Window
     {
         if (GetFile(out var file))
         {
-            _model.OutputDirectory = file;
+            _model.ZoneSystemFile = file;
         }
     }
 
@@ -170,16 +185,32 @@ public partial class MainWindow : Window
     {
         var config = _model.GenerateConfiguraiton();
         this.IsEnabled = false;
+        _model.ModelRunning = true;
         try
         {
             await Task.Run(() =>
             {
                 Synthesis.RunSynthesis(config);
             });
+            SystemSounds.Asterisk.Play();
+        }
+        catch (Exception ex)
+        {
+            while(ex.InnerException is not null)
+            {
+                ex = ex.InnerException;
+            }
+            SystemSounds.Beep.Play();
+#if DEBUG
+            MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+#else
+            MessageBox.Show(ex.Message);
+#endif
         }
         finally
         {
             this.IsEnabled = true;
+            _model.ModelRunning = false;
         }
     }
 

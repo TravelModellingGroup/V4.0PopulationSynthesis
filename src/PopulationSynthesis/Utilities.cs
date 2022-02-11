@@ -76,4 +76,35 @@ internal static class Utilities
         }
         return true;
     }
+
+    /// <summary>
+    /// Create the given sub-directory, if it does not already exist, and return a reference to it.
+    /// </summary>
+    /// <param name="baseDirectory">The path of base directory.</param>
+    /// <param name="subDirectory">The name of the sub-directory.</param>
+    /// <returns>A reference to the sub-directory.</returns>
+    public static DirectoryInfo CreateDirectory(string baseDirectory, string subDirectory)
+    {
+        var dir = Path.Combine(baseDirectory, subDirectory);
+        return Directory.CreateDirectory(dir);
+    }
+
+    /// <summary>
+    /// Creates a new stream writer
+    /// </summary>
+    /// <param name="filePath">The file to write to.</param>
+    /// <returns>The stream writer to use.</returns>
+    public static StreamWriter CreateStreamWriter(string filePath)
+    {
+        return new StreamWriter(filePath,
+            new FileStreamOptions()
+            {
+                Access = FileAccess.Write,
+                // 64MB buffer
+                BufferSize = 64 * 0x1024,
+                Mode = FileMode.Create,
+                Share = FileShare.None,
+                Options = FileOptions.SequentialScan,
+            });
+    }
 }

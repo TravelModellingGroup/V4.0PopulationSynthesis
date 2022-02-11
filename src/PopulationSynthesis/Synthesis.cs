@@ -48,15 +48,16 @@ public static class Synthesis
     /// <summary>
     /// Record the results of the population synthesis.
     /// </summary>
-    /// <param name="synthesisResults"></param>
-    /// <param name="outputDirectory"></param>
-    /// <param name="households"></param>
-    /// <param name="persons"></param>
-    private static void Record(ParallelQuery<(int householdId, int taz)> synthesisResults, string outputDirectory,
+    /// <param name="synthesisResults">The picked households for each zone.</param>
+    /// <param name="outputDirectory">The directory that we will be storing the results.</param>
+    /// <param name="households">The seed households.</param>
+    /// <param name="persons">The seed persons.</param>
+    private static void Record(IEnumerable<(int householdId, int taz)> synthesisResults, string outputDirectory,
         Dictionary<int, Household> households, Dictionary<int, List<Person>> persons)
     {
-        using var householdWriter = new StreamWriter(Path.Combine(outputDirectory, "Households.csv"));
-        using var personWriter = new StreamWriter(Path.Combine(outputDirectory, "Persons.csv"));
+        var householdData = CreateDirectory(outputDirectory, "HouseholdData");
+        using var householdWriter = CreateStreamWriter(Path.Combine(householdData.FullName, "Households.csv"));
+        using var personWriter = CreateStreamWriter(Path.Combine(householdData.FullName, "Persons.csv"));
         int householdId = 1;
         WriteHeaders(householdWriter, personWriter);
         var workers = new WorkerCategoryBuilder();
@@ -69,6 +70,7 @@ public static class Synthesis
             workers.Record(household, householdMembers, taz);
             householdId++;
         }
+        workers.WriteResults(outputDirectory);
     }
 
     /// <summary>
@@ -120,6 +122,12 @@ public static class Synthesis
             writer.Write(',');
             writer.Write(person.EmploymentStatus);
             writer.Write(',');
+            writer.Write(person.Occupation);
+            writer.Write(',');
+            writer.Write(person.FreeParking);
+            writer.Write(',');
+            writer.Write(person.StudentStatus);
+            writer.Write(',');
             writer.Write(person.EmploymentPD);
             writer.Write(',');
             writer.Write(person.SchoolPD);
@@ -156,7 +164,7 @@ public static class Synthesis
         var totalExpansionFactor = CopyExpansionFactors(expFactors, pool);
         const int numberOfAttempts = 3;
         // Keep drawing people until no zones required any new households
-        var any = false;
+        var any = true;
         while (any)
         {
             any = false;
@@ -177,7 +185,7 @@ public static class Synthesis
                             }
                             else
                             {
-                                throw new SynthesisException($"Unable to select a household for zone {zones[i]}!");
+                                DiagnosePossibleIssues(zones[i], pd, expFactors, pool, remaining[i]);
                             }
                             continue;
                         }
@@ -187,6 +195,32 @@ public static class Synthesis
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Go through the state of GeneratePopulation and
+    /// attempt to figure out why the algorithm is not working.
+    /// </summary>
+    /// <param name="zoneNumber">The zone number that this failed on.</param>
+    /// <param name="pd">The planning district that is currently being evaluated.</param>
+    /// <param name="expFactors">The remaining expansionFactors.</param>
+    /// <param name="pool">The pool of households to draw from.</param>
+    /// <param name="remaining">The number of persons left to draw for the zone.</param>
+    private static void DiagnosePossibleIssues(int zoneNumber, int pd, float[] expFactors, KeyValuePair<int, Household>[] pool, int remaining)
+    {
+        if(pool.Length == 0)
+        {
+            throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because there are no seed households in the planning district {pd}!");
+        }
+        if (!pool.Any(entry => entry.Value.NumberOfPersons <= remaining))
+        {
+            throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because there are no households in the seed records with at most {remaining} persons living in it!");
+        }
+        if(expFactors.Sum() == 0.0f)
+        {
+            throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because the seed population for PD {pd} have no expansion factors!");
+        }
+        throw new SynthesisException($"Unable to select a household for zone {zoneNumber}!");
     }
 
     /// <summary>
@@ -205,7 +239,7 @@ public static class Synthesis
         for (int i = 0; i < expFactors.Length; i++)
         {
             acc += expFactors[i];
-            if ((acc > pop) & expFactors[i] > 0)
+            if ((acc >= pop) & expFactors[i] > 0)
             {
                 var householdSize = pool[i].Value.NumberOfPersons;
                 if (householdSize <= remaining)
