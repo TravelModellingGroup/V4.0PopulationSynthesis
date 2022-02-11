@@ -31,9 +31,9 @@ public static class Synthesis
     /// <exception cref="Exception">Thrown when there is an error that forces the execution of the synthesis to terminate.</exception>
     public static void RunSynthesis(Configuration configuration)
     {
-        var landUse = new LandUse(configuration.ZoneSystemFile, configuration.PopulationForecastFile);
-        var households = Household.ReadHouseholds(GetHouseholdsFile(configuration.InputPopulationDirectory));
-        var persons = Person.ReadPersons(GetPersonsFile(configuration.InputPopulationDirectory));
+        var landUse = new LandUse(Path.Combine(configuration.InputDirectory, "ZoneSystem.csv"), configuration.PopulationForecastFile);
+        var households = Household.ReadHouseholds(GetHouseholdsFile(configuration.InputDirectory));
+        var persons = Person.ReadPersons(GetPersonsFile(configuration.InputDirectory));
         var pds = landUse.GetPlanningDistricts();
         var random = new Random(configuration.RandomSeed);
         var pdSeed = pds.Select(pd => (PD: pd, Seed: random.Next(0, int.MaxValue))).ToDictionary(v => v.PD, v => v.Seed);
@@ -311,7 +311,7 @@ public static class Synthesis
     /// <param name="inputPopulationDirectory">The directory containing the input population.</param>
     /// <returns>The path to the Household records.</returns>
     /// <exception cref="FileNotFoundException">Throws if the file does not exist.</exception>
-    private static string GetHouseholdsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "Households.csv"));
+    private static string GetHouseholdsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "SeedHouseholds.csv"));
 
     /// <summary>
     /// Get the Persons.csv file given the path to the input population directory.
@@ -319,5 +319,5 @@ public static class Synthesis
     /// <param name="inputPopulationDirectory">The directory containing the input population.</param>
     /// <returns>The path to the Persons records.</returns>
     /// <exception cref="FileNotFoundException">Throws if the file does not exist.</exception>
-    private static string GetPersonsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "Persons.csv"));
+    private static string GetPersonsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "SeedPersons.csv"));
 }
