@@ -16,13 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with V4.0PopulationSynthesis.  If not, see <http://www.gnu.org/licenses/>.
 */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace PopulationSynthesis;
-using static Utilities;
 
 /// <summary>
 /// Represents a person within a household.
@@ -59,7 +53,7 @@ public readonly record struct Person(int Age, string Sex, string License, string
             string? error = null;
             if (!int.TryParse(record[0], out var hid))
             {
-                throw new Exception("Unable to process a household Id of ");
+                throw new Exception($"Found a person record with the household Id of {record[0]} however no household record with that id exists!");
             }
             var persons = GetPersonsListOrCreate(personsInHousehold, hid);
             if (!AddPersonRecordToPersonsList(persons, record, ref error))
@@ -89,8 +83,8 @@ public readonly record struct Person(int Age, string Sex, string License, string
     /// Loads in a person record and appends it to the list of persons within the household.
     /// </summary>
     /// <param name="persons">The list of persons in the household.</param>
-    /// <param name="record"></param>
-    /// <param name="error"></param>
+    /// <param name="record">The record broken down into columns.</param>
+    /// <param name="error">The error message if this operation returns false.</param>
     private static bool AddPersonRecordToPersonsList(List<Person> persons, string[] record, ref string? error)
     {
         if (!ParseInt(record[2], out var age, "Age", ref error)) return false;
@@ -107,5 +101,13 @@ public readonly record struct Person(int Age, string Sex, string License, string
         persons.Add(new Person(age, sex, license, transitPass, employmentStatus, occupation, freeParking, studentStatus, employmentPD, schoolPD, expansionFactor));
         return true;
     }
-}
 
+    /// <summary>
+    /// Checks to see if the person has a license
+    /// </summary>
+    /// <returns>True if they do, false otherwise.</returns>
+    internal bool HasLicense()
+    {
+        return char.ToLowerInvariant(License[0]) == 'y';
+    }
+}
