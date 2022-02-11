@@ -22,10 +22,9 @@ namespace PopulationSynthesis;
 /// Provides a central object containing all of the settings that will be fed into the simulation.
 /// </summary>
 /// <param name="PopulationForecastFile">The path containing the forecast population by TAZ.</param>
-/// <param name="ZoneSystemFile">The path containing the mapping between TAZ and PD.</param>
-/// <param name="InputPopulationDirectory">The directory containing the input Households.csv and Persons.csv files.</param>
+/// <param name="InputDirectory">The directory containing the input SeedHouseholds.csv, SeedPersons.csv, and ZoneSystem.csv files.</param>
 /// <param name="OutputDirectory">The directory to write all of the outputs into.</param>
 /// <param name="RandomSeed">A set random seed to control the random number generator.</param>
 public record Configuration(
-    string PopulationForecastFile, string ZoneSystemFile, string InputPopulationDirectory, string OutputDirectory, int RandomSeed
+    string PopulationForecastFile, string InputDirectory, string OutputDirectory, int RandomSeed
 );

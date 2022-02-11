@@ -37,8 +37,7 @@ public partial class MainWindow : Window
     public class ConfigurationModel : INotifyPropertyChanged
     {
         string _populationForecastFile = String.Empty;
-        string _zoneSystemFile = String.Empty;
-        string _inputPopulationDirectory = String.Empty;
+        string _inputDirectory = String.Empty;
         string _outputDirectory = String.Empty;
         int _randomSeed = 12345;
         bool _modelRunning = false;
@@ -53,22 +52,12 @@ public partial class MainWindow : Window
             }
         }
 
-        public string ZoneSystemFile
+        public string InputDirectory
         {
-            get => _zoneSystemFile;
+            get => _inputDirectory;
             set
             {
-                _zoneSystemFile = value;
-                InvokePropertyChanged();
-            }
-        }
-
-        public string InputPopulationDirectory
-        {
-            get => _inputPopulationDirectory;
-            set
-            {
-                _inputPopulationDirectory = value;
+                _inputDirectory = value;
                 InvokePropertyChanged();
             }
         }
@@ -125,8 +114,7 @@ public partial class MainWindow : Window
         public Configuration GenerateConfiguraiton()
         {
             return new Configuration(PopulationForecastFile,
-                ZoneSystemFile,
-                InputPopulationDirectory,
+                InputDirectory,
                 OutputDirectory,
                 _randomSeed);
         }
@@ -149,19 +137,11 @@ public partial class MainWindow : Window
         };
     }
 
-    private void InputSeedDirectory_Click(object sender, RoutedEventArgs e)
+    private void InputDirectory_Click(object sender, RoutedEventArgs e)
     {
         if (GetDirectory(out var dir))
         {
-            _model.InputPopulationDirectory = dir;
-        }
-    }
-
-    private void ZoneSystemFile_Click(object sender, RoutedEventArgs e)
-    {
-        if (GetFile(out var file))
-        {
-            _model.ZoneSystemFile = file;
+            _model.InputDirectory = dir;
         }
     }
 
