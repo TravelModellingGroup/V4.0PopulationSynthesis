@@ -77,7 +77,7 @@ public partial class MainWindow : Window
             get => _randomSeed.ToString();
             set
             {
-                if(int.TryParse(value, out var randomSeed))
+                if (int.TryParse(value, out var randomSeed))
                 {
                     _randomSeed = randomSeed;
                     InvokePropertyChanged();
@@ -91,7 +91,7 @@ public partial class MainWindow : Window
             set
             {
                 _modelRunning = value;
-               InvokePropertyChanged(); 
+                InvokePropertyChanged();
             }
         }
 
@@ -155,7 +155,7 @@ public partial class MainWindow : Window
 
     private void OutputDirectory_Click(object sender, RoutedEventArgs e)
     {
-        if(GetDirectory(out var dir))
+        if (GetDirectory(out var dir))
         {
             _model.OutputDirectory = dir;
         }
@@ -176,7 +176,40 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            while(ex.InnerException is not null)
+            while (ex.InnerException is not null)
+            {
+                ex = ex.InnerException;
+            }
+            SystemSounds.Beep.Play();
+#if DEBUG
+            MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+#else
+            MessageBox.Show(ex.Message);
+#endif
+        }
+        finally
+        {
+            this.IsEnabled = true;
+            _model.ModelRunning = false;
+        }
+    }
+
+    private async void RegenerateWorkerCategories_Click(object sender, RoutedEventArgs e)
+    {
+        var config = _model.GenerateConfiguraiton();
+        this.IsEnabled = false;
+        _model.ModelRunning = true;
+        try
+        {
+            await Task.Run(() =>
+            {
+                Synthesis.RegenerateWorkerCategories(config);
+            });
+            SystemSounds.Asterisk.Play();
+        }
+        catch (Exception ex)
+        {
+            while (ex.InnerException is not null)
             {
                 ex = ex.InnerException;
             }
@@ -233,7 +266,7 @@ public partial class MainWindow : Window
             Multiselect = false,
             ShowReadOnly = true,
         };
-        if(openFileDialog.ShowDialog(this) == true)
+        if (openFileDialog.ShowDialog(this) == true)
         {
             fileName = openFileDialog.FileName;
             return true;
