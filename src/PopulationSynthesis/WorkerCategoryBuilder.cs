@@ -108,7 +108,7 @@ internal sealed class WorkerCategoryBuilder
     {
         var occ = GetOcc(person);
         int emp = GetEmp(person);
-        return (occ > 0) & (emp > 0) ? 
+        return (occ >= 0) & (emp >= 0) ? 
             occ + emp * _numberOfOccupations 
             : -1;
     }

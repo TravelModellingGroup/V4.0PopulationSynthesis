@@ -46,6 +46,26 @@ public static class Synthesis
     }
 
     /// <summary>
+    /// Regenerate the worker categories from the output directory.
+    /// </summary>
+    /// <param name="configuration">The configuration of the synthesis to execute.</param>
+    /// <exception cref="Exception">Thrown when there is an error that forces the execution of the synthesis to terminate.</exception>
+    public static void RegenerateWorkerCategories(Configuration configuration)
+    {
+        var households = Household.ReadHouseholds(GetHouseholdsFile(configuration.OutputDirectory, "HouseholdData/Households.csv"));
+        var persons = Person.ReadPersons(GetPersonsFile(configuration.OutputDirectory, "HouseholdData/Persons.csv"));
+        // PDs are zones for this functionality
+        var workers = new WorkerCategoryBuilder();
+        foreach (var household in households.OrderBy(k => k.Key))
+        {
+            var householdMembers = persons[household.Key];
+            var zone = household.Value.HouseholdPD;
+            workers.Record(household.Value, householdMembers, zone);
+        }
+        workers.WriteResults(configuration.OutputDirectory);
+    }
+
+    /// <summary>
     /// Record the results of the population synthesis.
     /// </summary>
     /// <param name="synthesisResults">The picked households for each zone.</param>
@@ -53,7 +73,7 @@ public static class Synthesis
     /// <param name="households">The seed households.</param>
     /// <param name="persons">The seed persons.</param>
     private static void Record(IEnumerable<(int householdId, int taz)> synthesisResults, string outputDirectory,
-        Dictionary<int, Household> households, Dictionary<int, List<Person>> persons)
+    Dictionary<int, Household> households, Dictionary<int, List<Person>> persons)
     {
         var householdData = CreateDirectory(outputDirectory, "HouseholdData");
         using var householdWriter = CreateStreamWriter(Path.Combine(householdData.FullName, "Households.csv"));
@@ -208,7 +228,7 @@ public static class Synthesis
     /// <param name="remaining">The number of persons left to draw for the zone.</param>
     private static void DiagnosePossibleIssues(int zoneNumber, int pd, float[] expFactors, KeyValuePair<int, Household>[] pool, int remaining)
     {
-        if(pool.Length == 0)
+        if (pool.Length == 0)
         {
             throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because there are no seed households in the planning district {pd}!");
         }
@@ -216,7 +236,7 @@ public static class Synthesis
         {
             throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because there are no households in the seed records with at most {remaining} persons living in it!");
         }
-        if(expFactors.Sum() == 0.0f)
+        if (expFactors.Sum() == 0.0f)
         {
             throw new SynthesisException($"Unable to select a household for zone {zoneNumber} because the seed population for PD {pd} have no expansion factors!");
         }
@@ -311,7 +331,7 @@ public static class Synthesis
     /// <param name="inputPopulationDirectory">The directory containing the input population.</param>
     /// <returns>The path to the Household records.</returns>
     /// <exception cref="FileNotFoundException">Throws if the file does not exist.</exception>
-    private static string GetHouseholdsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "SeedHouseholds.csv"));
+    private static string GetHouseholdsFile(string inputPopulationDirectory, string innerName = "SeedHouseholds.csv") => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, innerName));
 
     /// <summary>
     /// Get the Persons.csv file given the path to the input population directory.
@@ -319,5 +339,5 @@ public static class Synthesis
     /// <param name="inputPopulationDirectory">The directory containing the input population.</param>
     /// <returns>The path to the Persons records.</returns>
     /// <exception cref="FileNotFoundException">Throws if the file does not exist.</exception>
-    private static string GetPersonsFile(string inputPopulationDirectory) => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, "SeedPersons.csv"));
+    private static string GetPersonsFile(string inputPopulationDirectory, string innerName = "SeedPersons.csv") => GetFilePathOrThrow(Path.Combine(inputPopulationDirectory, innerName));
 }
