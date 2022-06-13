@@ -41,10 +41,9 @@ public readonly record struct Household(int HouseholdID, int HouseholdPD, float 
         return File.ReadLines(fileName)
             .Skip(1)
             .AsParallel()
-            .AsOrdered()
             .Select(line => line.Split(','))
             .Where(parts => parts.Length == 7)
             .Select(parts => new Household(int.Parse(parts[0]), int.Parse(parts[1]), float.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), int.Parse(parts[6])))
-            .ToDictionary(h => h.HouseholdID);
+            .ToDictionary(h => h.HouseholdID, h => h);
     }
 }

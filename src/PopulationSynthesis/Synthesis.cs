@@ -86,7 +86,7 @@ public static class Synthesis
             var household = households[householdIndex];
             var householdMembers = persons[householdIndex];
             WriteHousehold(householdWriter, household, householdId, taz);
-            WritePersons(personWriter, householdId, householdMembers);
+            WritePersonRecords(personWriter, householdId, householdMembers);
             workers.Record(household, householdMembers, taz);
             householdId++;
         }
@@ -106,7 +106,7 @@ public static class Synthesis
         writer.Write(',');
         writer.Write(taz);
         writer.Write(',');
-        writer.Write(household.ExpansionFactor);
+        writer.Write(1);
         writer.Write(',');
         writer.Write(household.DwellingType);
         writer.Write(',');
@@ -123,8 +123,9 @@ public static class Synthesis
     /// <param name="writer">The stream to write to.</param>
     /// <param name="householdId">The household id for this household.</param>
     /// <param name="people">The people living in this household.</param>
-    private static void WritePersons(StreamWriter writer, int householdId, List<Person> people)
+    private static void WritePersonRecords(StreamWriter writer, int householdId, List<Person> people)
     {
+        var averageExpansion = people.Average(p => p.ExpansionFactor);
         for (int i = 0; i < people.Count; i++)
         {
             var person = people[i];
@@ -152,7 +153,7 @@ public static class Synthesis
             writer.Write(',');
             writer.Write(person.SchoolPD);
             writer.Write(',');
-            writer.WriteLine(person.ExpansionFactor);
+            writer.WriteLine(person.ExpansionFactor / averageExpansion);
         }
     }
 
@@ -322,6 +323,7 @@ public static class Synthesis
     {
         return households
             .Where(entry => entry.Value.HouseholdPD == pd)
+            .OrderBy(entry => entry.Key)
             .ToArray();
     }
 

@@ -16,6 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with V4.0PopulationSynthesis.  If not, see <http://www.gnu.org/licenses/>.
 */
+using System.Runtime.CompilerServices;
+
 namespace PopulationSynthesis;
 
 /// <summary>
@@ -91,8 +93,8 @@ public readonly record struct Person(int Age, string Sex, string License, string
         string sex = record[3];
         string license = record[4];
         string transitPass = record[5];
-        string employmentStatus = record[6];
-        string occupation = record[7];
+        string employmentStatus = RemoveUnknowns(record[6]);
+        string occupation = RemoveUnknowns(record[7]);
         bool freeParking = record[8] == "Y";
         string studentStatus = record[9];
         if (!ParseInt(record[10], out int employmentPD, "EmploymentPD", ref error)) return false;
@@ -100,6 +102,12 @@ public readonly record struct Person(int Age, string Sex, string License, string
         if (!ParseFloat(record[12], out float expansionFactor, "ExpansionFactor", ref error)) return false;
         persons.Add(new Person(age, sex, license, transitPass, employmentStatus, occupation, freeParking, studentStatus, employmentPD, schoolPD, expansionFactor));
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    private static string RemoveUnknowns(string occOrEmp)
+    {
+        return occOrEmp != "9" ? occOrEmp : "O";
     }
 
     /// <summary>
